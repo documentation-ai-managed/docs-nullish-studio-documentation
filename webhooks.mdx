@@ -1,0 +1,242 @@
+---
+title: Webhooks
+description: Set up webhooks to receive real-time notifications about documentation events
+---
+
+## Webhooks Overview
+
+Webhooks allow you to receive real-time notifications when specific events occur in your Nullish Studio documentation. This enables you to build integrations that react to changes, automate workflows, and keep external systems in sync.
+
+<Callout kind="info">
+  Webhooks deliver JSON payloads via HTTP POST requests to URLs you specify.
+</Callout>
+
+## Setting Up Webhooks
+
+Configure webhooks in your project settings to start receiving event notifications.
+
+<Steps>
+  <Step title="Access Settings" icon="settings">
+    Navigate to your project settings and select the Webhooks tab.
+  </Step>
+  <Step title="Create Webhook" icon="plus">
+    Click "Add Webhook" and enter your endpoint URL.
+  </Step>
+  <Step title="Select Events" icon="filter">
+    Choose which events you want to receive notifications for.
+  </Step>
+  <Step title="Test Connection" icon="zap">
+    Send a test payload to verify your endpoint is working.
+  </Step>
+</Steps>
+
+## Supported Events
+
+Nullish Studio supports a variety of events to keep you informed about documentation changes.
+
+<Tabs>
+  <Tab title="Document Events" icon="file-text">
+    Notifications for document creation, updates, and deletions.
+    
+    | Event | Description |
+    |-------|-------------|
+    | document.created | Fired when a new document is created |
+    | document.updated | Fired when document content changes |
+    | document.deleted | Fired when a document is removed |
+  </Tab>
+  <Tab title="Project Events" icon="folder">
+    Events related to project-level changes.
+    
+    | Event | Description |
+    |-------|-------------|
+    | project.updated | Fired when project settings change |
+    | member.added | Fired when a new team member joins |
+    | member.removed | Fired when a team member leaves |
+  </Tab>
+  <Tab title="Publication Events" icon="send">
+    Notifications about publishing and deployment.
+    
+    | Event | Description |
+    |-------|-------------|
+    | document.published | Fired when a document is published |
+    | site.deployed | Fired when the site is deployed |
+  </Tab>
+</Tabs>
+
+## Webhook Payloads
+
+Each webhook delivery includes a JSON payload with detailed information about the event.
+
+<Expandable title="Document Created Payload" default-open="false">
+  ```json
+  {
+    "event": "document.created",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "project": {
+      "id": "proj_123",
+      "name": "API Documentation"
+    },
+    "document": {
+      "id": "doc_456",
+      "title": "Getting Started",
+      "path": "/getting-started",
+      "author": {
+        "id": "user_789",
+        "name": "John Doe",
+        "email": "john@example.com"
+      }
+    },
+    "changes": {
+      "action": "created",
+      "previous_version": null
+    }
+  }
+  ```
+</Expandable>
+
+<Expandable title="Document Updated Payload" default-open="false">
+  ```json
+  {
+    "event": "document.updated",
+    "timestamp": "2024-01-15T11:45:00Z",
+    "project": {
+      "id": "proj_123",
+      "name": "API Documentation"
+    },
+    "document": {
+      "id": "doc_456",
+      "title": "Getting Started",
+      "path": "/getting-started",
+      "author": {
+        "id": "user_789",
+        "name": "Jane Smith",
+        "email": "jane@example.com"
+      }
+    },
+    "changes": {
+      "action": "updated",
+      "previous_version": "v1.0",
+      "current_version": "v1.1",
+      "diff": "+ Added new section on authentication"
+    }
+  }
+  ```
+</Expandable>
+
+## Security and Verification
+
+Ensure the security of your webhook endpoints with proper verification.
+
+<Callout kind="danger">
+  Always verify webhook signatures to prevent unauthorized requests.
+</Callout>
+
+### Signature Verification
+
+Nullish Studio signs each webhook payload with a secret key you provide.
+
+```javascript
+const crypto = require('crypto');
+
+const verifySignature = (payload, signature, secret) => {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(JSON.stringify(payload))
+    .digest('hex');
+  
+  return crypto.timingSafeEqual(
+    Buffer.from(signature, 'hex'),
+    Buffer.from(expectedSignature, 'hex')
+  );
+};
+
+// Express.js middleware example
+const webhookMiddleware = (req, res, next) => {
+  const signature = req.headers['x-nullish-signature'];
+  const secret = process.env.WEBHOOK_SECRET;
+  
+  if (!verifySignature(req.body, signature, secret)) {
+    return res.status(401).send('Invalid signature');
+  }
+  
+  next();
+};
+```
+
+## Handling Webhooks
+
+Build robust webhook handlers that can process events reliably.
+
+<Steps>
+  <Step title="Parse Payload" icon="code">
+    Extract the event type and data from the JSON payload.
+  </Step>
+  <Step title="Validate Event" icon="check-circle">
+    Verify the event is one you care about and the data is valid.
+  </Step>
+  <Step title="Process Event" icon="cog">
+    Perform your business logic based on the event type.
+  </Step>
+  <Step title="Respond Quickly" icon="zap">
+    Return a 200 status code within 10 seconds to acknowledge receipt.
+  </Step>
+</Steps>
+
+### Error Handling
+
+Implement proper error handling to manage failed deliveries and retries.
+
+```javascript
+const handleWebhook = async (event, payload) => {
+  try {
+    switch (event) {
+      case 'document.created':
+        await syncToExternalSystem(payload.document);
+        break;
+      case 'document.updated':
+        await updateSearchIndex(payload.document);
+        break;
+      case 'project.updated':
+        await refreshProjectCache(payload.project);
+        break;
+      default:
+        console.log(`Unhandled event: ${event}`);
+    }
+    
+    console.log(`Successfully processed ${event}`);
+  } catch (error) {
+    console.error(`Error processing ${event}:`, error);
+    // Log error for manual review
+    await logWebhookError(event, payload, error);
+  }
+};
+```
+
+## Best Practices
+
+Follow these guidelines to ensure reliable webhook integration.
+
+- Use HTTPS endpoints to encrypt webhook payloads in transit
+- Implement idempotency to handle duplicate deliveries gracefully
+- Set up monitoring and alerting for webhook failures
+- Store webhook logs for debugging and compliance purposes
+- Test your webhook endpoints thoroughly before going to production
+- Handle rate limiting by implementing queuing for high-volume events
+
+## Troubleshooting
+
+Common issues and their solutions when working with webhooks.
+
+<Expandable title="Webhook Not Firing" default-open="false">
+  Check that your endpoint URL is correct and accessible. Ensure your server is running and can accept POST requests.
+</Expandable>
+
+<Expandable title="Invalid Signature" default-open="false">
+  Verify that your webhook secret matches the one configured in Nullish Studio. Check that you're using the correct algorithm (HMAC-SHA256).
+</Expandable>
+
+<Expandable title="Timeouts" default-open="false">
+  Webhook deliveries have a 10-second timeout. Optimize your handler to process events quickly or implement asynchronous processing.
+</Expandable>
+
+By leveraging webhooks, you can create powerful integrations that keep your systems in sync with your documentation changes in real time.

@@ -1,0 +1,211 @@
+---
+title: Configuration
+description: Configure Nullish Studio to match your workflow and branding needs
+---
+
+## Configuration Overview
+
+Nullish Studio offers extensive configuration options to customize your documentation experience. From basic project settings to advanced branding and integration configurations, you can tailor the platform to fit your team's unique requirements.
+
+<Columns cols={2}>
+  <Card title="Project Settings" icon="settings" href="#project-settings">
+    Configure basic project information and access controls.
+  </Card>
+  <Card title="Branding" icon="palette" href="#branding">
+    Customize the look and feel of your documentation site.
+  </Card>
+</Columns>
+
+## Project Settings
+
+Start by configuring the fundamental aspects of your documentation project.
+
+<Steps>
+  <Step title="Project Details" icon="file-text">
+    Set your project name, description, and visibility settings.
+  </Step>
+  <Step title="Team Management" icon="users">
+    Invite team members and assign appropriate roles and permissions.
+  </Step>
+  <Step title="Version Control" icon="git-branch">
+    Configure Git integration for version tracking and collaboration.
+  </Step>
+</Steps>
+
+### Access Control
+
+Nullish Studio provides granular access control to ensure the right people have access to the right content.
+
+<Tabs>
+  <Tab title="Roles" icon="user-check">
+    Define custom roles with specific permissions for your team members.
+    
+    | Role       | Permissions |
+    |------------|-------------|
+    | Viewer     | Read access to published docs |
+    | Editor     | Create and edit content |
+    | Admin      | Full control including settings |
+  </Tab>
+  <Tab title="Permissions" icon="shield">
+    Set permissions at the project, folder, or individual document level.
+  </Tab>
+</Tabs>
+
+## Branding and Theming
+
+Make your documentation site reflect your brand identity with our comprehensive theming options.
+
+<Expandable title="Color Customization" default-open="false">
+  Customize the color palette to match your brand guidelines.
+  
+  ```json
+  {
+    "primaryColor": "#3B82F6",
+    "secondaryColor": "#64748B",
+    "accentColor": "#10B981"
+  }
+  ```
+</Expandable>
+
+<Expandable title="Logo and Assets" default-open="false">
+  Upload your company logo and custom favicon for a professional appearance.
+  
+  Supported formats: PNG, SVG, JPG (max 2MB)
+</Expandable>
+
+<Expandable title="Typography" default-open="false">
+  Choose from our selection of fonts or integrate custom web fonts.
+</Expandable>
+
+## Integrations
+
+Connect Nullish Studio with your existing tools and workflows.
+
+<Callout kind="tip">
+  Integrations help automate documentation updates and keep your team in sync.
+</Callout>
+
+### GitHub Integration
+
+Automatically sync your documentation with GitHub repositories.
+
+<CodeGroup tabs="Webhook Setup,Manual Sync">
+  ```javascript
+// Webhook configuration
+const webhookConfig = {
+  url: 'https://nullish.studio/webhooks/github',
+  events: ['push', 'pull_request'],
+  secret: 'your_webhook_secret'
+};
+
+fetch('https://api.github.com/repos/owner/repo/hooks', {
+  method: 'POST',
+  headers: {
+    'Authorization': `token ${GITHUB_TOKEN}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify(webhookConfig)
+});
+```
+  ```bash
+# Manual sync script
+#!/bin/bash
+
+# Pull latest changes
+git pull origin main
+
+# Build and deploy documentation
+npm run build
+npm run deploy
+
+echo "Documentation updated successfully"
+```
+</CodeGroup>
+
+### Slack Notifications
+
+Get notified about documentation changes and approvals directly in Slack.
+
+```bash
+# Slack webhook integration
+SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..."
+
+curl -X POST -H 'Content-type: application/json' \
+  --data '{
+    "text": "New documentation update available",
+    "attachments": [
+      {
+        "title": "API Reference Updated",
+        "title_link": "https://docs.nullish.studio/api",
+        "color": "good"
+      }
+    ]
+  }' \
+  $SLACK_WEBHOOK_URL
+```
+
+## Advanced Configuration
+
+For power users and enterprises, we offer advanced configuration options.
+
+### Custom Domains
+
+Host your documentation on your own domain for better branding and SEO.
+
+<Steps>
+  <Step title="DNS Setup" icon="globe">
+    Add a CNAME record pointing to nullish.studio.
+  </Step>
+  <Step title="SSL Certificate" icon="lock">
+    We automatically provision SSL certificates for custom domains.
+  </Step>
+  <Step title="Domain Verification" icon="check-circle">
+    Verify ownership through DNS TXT record or HTML file upload.
+  </Step>
+</Steps>
+
+### API Configuration
+
+Fine-tune API behavior and limits for your specific needs.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Rate Limit | 1000/hour | API requests per hour |
+| Timeout | 30s | Request timeout duration |
+| Retry Count | 3 | Number of automatic retries |
+
+<Callout kind="danger">
+  Changing advanced settings can affect performance and security. Contact support if you're unsure.
+</Callout>
+
+## Configuration Validation
+
+Before applying changes, validate your configuration to catch potential issues.
+
+```javascript
+const validateConfig = (config) => {
+  const errors = [];
+  
+  if (!config.name) errors.push('Project name is required');
+  if (!config.primaryColor.match(/^#[0-9A-F]{6}$/i)) {
+    errors.push('Invalid primary color format');
+  }
+  if (config.rateLimit < 100) errors.push('Rate limit too low');
+  
+  return errors;
+};
+
+// Example usage
+const myConfig = {
+  name: 'My Project',
+  primaryColor: '#3B82F6',
+  rateLimit: 1000
+};
+
+const validationErrors = validateConfig(myConfig);
+if (validationErrors.length > 0) {
+  console.error('Configuration errors:', validationErrors);
+}
+```
+
+With these configuration options, you can create a documentation experience that perfectly matches your team's workflow and brand identity.
